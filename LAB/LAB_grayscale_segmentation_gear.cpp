@@ -31,22 +31,20 @@ int main() {
             circle(dst, center_gear, (int)radius, Scalar(255, 0, 0), 2);
         }
 
-        Point2f closestPoint;
-        double minDistance = DBL_MAX;
+        Point2f Final_Point;
+        double minDistance = 2000;
         for (int j = 0; j < contours[0].size(); j++) {
             Point2f point = contours[0][j];
             double distance = norm(center_gear - point);
 
             if (distance < minDistance) {
                 minDistance = distance;
-                closestPoint = point;
+                Final_Point = point;
             }
         }
-        double radius = norm(center_gear - closestPoint);
-        //cout << "Radius: " << radius << endl;
+        double radius = norm(center_gear - Final_Point);
 
-
-        circle(dst, center_gear, (int)radius + 4, Scalar(255, 0, 0), 2);
+        //circle(dst, center_gear, (int)radius + 4, Scalar(255, 0, 0), 2);
         Mat gear_tooth = src.clone();
         circle(gear_tooth, center_gear, (int)radius + 4, Scalar(0, 0, 0), -1);
 
@@ -72,12 +70,10 @@ int main() {
             drawContours(contour_Img, contours, j, Color, 2);
         }
 
-        // **putText 적용 전의 이미지 출력 (두 번째로)** 
         for (int j = 0; j < contours.size(); ++j) {
             Moments m = moments(contours[j]);
             Point2f center(m.m10 / m.m00 - 20, m.m01 / m.m00);
 
-            // 컨투어 색상 결정
             Scalar Color = (m.m00 < avg_pixel - 200 || m.m00 > avg_pixel + 200) ? Scalar(0, 0, 255) : Scalar(0, 255, 0);
             drawContours(finalDst_val, contours, j, Color, 2);
 
@@ -92,6 +88,15 @@ int main() {
         imshow("#3 Contour Only Image " + to_string(i + 1), contour_Img);
 
         Mat check_Img = src.clone();
+
+        for (int i = 0; i < contours.size(); ++i) {
+            Moments m = moments(contours[i]);
+            Point2f center(m.m10 / m.m00, m.m01 / m.m00);
+            if (m.m00 < avg_pixel - 200 || m.m00 > avg_pixel + 200) {
+                circle(check_Img, center, 50, Scalar(0, 165, 255), 2, LINE_AA);
+            }
+        }
+
         int badTeeth = 0; 
         for (int j = 0; j < contours.size(); ++j) {
             Moments m = moments(contours[j]);
@@ -102,7 +107,7 @@ int main() {
             }
         }
 
-        cout << "기어 " << i + 1 << "의 불량 이빨 수: " << badTeeth << ", 이뿌리 원의 지름: " << radius*2 << "Avg_teeth_area: "<<avg_pixel<< endl;
+        cout << "기어 " << i + 1 << "의 불량 이빨 수: " << badTeeth << ", 이뿌리 원의 지름: " << radius*2 << ", Avg_teeth_area: "<<avg_pixel<< endl;
 
         imshow("#4 check bad teeth " + to_string(i + 1), check_Img);
     }
